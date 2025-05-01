@@ -10,6 +10,9 @@ import postImg3 from '@/assets/images/post/1by1/03.jpg';
 import postImg1 from '@/assets/images/post/3by2/01.jpg';
 import postImg2 from '@/assets/images/post/3by2/02.jpg';
 import VideoPlayer from './components/VideoPlayer';
+import { useEffect, useState } from 'react';
+import { CreateCommentData, GetComments } from '../../app/api/ApiService';
+
 const ActionMenu = ({
   name
 }) => {
@@ -23,7 +26,7 @@ const ActionMenu = ({
           <DropdownItem>
             
             <BsBookmark size={22} className="fa-fw pe-2" />
-            Save post
+            Delete post
           </DropdownItem>
         </li>
         <li>
@@ -60,25 +63,58 @@ const ActionMenu = ({
       </DropdownMenu>
     </Dropdown>;
 };
-const PostCard = ({
-  createdAt,
+const PostCard = (
+  {createdAt,
   likesCount,
   caption,
+  desc,
+  title,
+  name,
+  date,
+  post_id,
   comments,
   commentsCount,
   image,
   socialUser,
   photos,
-  isVideo
-}) => {
+  isVideo}
+) => {
+
+  const [created_at, setCreatedAt] = useState("");
+  const [content, setContent] = useState("");
+  const [comment, setComment] = useState([]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      const response = await GetComments();
+      if (response) {
+       setComment(response);
+      }
+    };
+    fetchComments();
+  }, []);
+
+  const handleCreateComment = async () => {
+    setCreatedAt(new Date().toISOString());
+    console.log("created_at", created_at);
+    console.log("contetnt", content)
+    const response = await CreateCommentData(content, created_at);
+    if (response) {
+      alert("Comment created successfully");
+    }
+    else {
+      alert("Failed to create comment");
+    }
+  }
+  
   return <Card>
       <CardHeader className="border-0 pb-0">
         <div className="d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center">
             <div className="avatar avatar-story me-2">
-              {socialUser?.avatar && <span role="button">
+              {<span role="button">
                   
-                  <img className="avatar-img rounded-circle" src={socialUser.avatar} alt={socialUser.name} />
+                  <img className="avatar-img rounded-circle" src={image} alt={""} />
                 </span>}
             </div>
 
@@ -86,23 +122,33 @@ const PostCard = ({
               <div className="nav nav-divider">
                 <h6 className="nav-item card-title mb-0">
                   
-                  <span role="button">{socialUser?.name} </span>
+                  {/* <span role="button">{socialUser?.name} </span> */}
                 </h6>
-                <span className="nav-item small"> {timeSince(createdAt)}</span>
+                {/* <span className="nav-item small"> {timeSince(createdAt)}</span> */}
               </div>
-              <p className="mb-0 small">Web Developer at Webestica</p>
+              <p className="mb-0 small">{name}</p>
+              <p className="mb-0 small">{new Date(date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })} {new Date(date).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
             </div>
           </div>
-          <ActionMenu name={socialUser?.name} />
+          {/* <ActionMenu name={socialUser?.name} /> */}
         </div>
       </CardHeader>
 
       <CardBody>
-        {caption && <p>{caption}</p>}
+      <h3 className="mb-0">{title}</h3>
+      {/* {caption && <p>{caption}</p>} */}
+      {desc && <p>{desc}</p>}
 
-        {image && <img className="card-img" src={image} alt="Post" />}
+        {/* {image && <img className="card-img" src={image} alt="Post" />} */}
 
-        {photos && <div className="d-flex justify-content-between">
+        {/* {photos && <div className="d-flex justify-content-between">
             <Row className="g-3">
               <Col xs={6}>
                 <GlightBox className="h-100" href={postImg3} data-gallery="image-popup">
@@ -126,21 +172,21 @@ const PostCard = ({
                 </div>
               </Col>
             </Row>
-          </div>}
-        {isVideo && <VideoPlayer />}
+          </div>} */}
+        {/* {isVideo && <VideoPlayer />} */}
         <ul className="nav nav-stack py-3 small">
           <li className="nav-item">
             <Link className="nav-link active icons-center" to="" data-bs-container="body" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-custom-class="tooltip-text-start" data-bs-title="Frances Guerrero<br> Lori Stevens<br> Billy Vasquez<br> Judy Nguyen<br> Larry Lawson<br> Amanda Reed<br> Louis Crawford">
               
               <BsHandThumbsUpFill size={18} className="pe-1" />
-              Liked ({likesCount})
+              {/* Liked ({likesCount}) */}
             </Link>
           </li>
           <li className="nav-item">
             <Link className="nav-link icons-center" to="">
               
               <BsChatFill size={18} className="pe-1" />
-              Comments ({commentsCount})
+              {/* Comments ({commentsCount}) */}
             </Link>
           </li>
 
@@ -192,7 +238,7 @@ const PostCard = ({
             </DropdownMenu>
           </Dropdown>
         </ul>
-        {comments && <>
+        { <>
             <div className="d-flex mb-3">
               <div className="avatar avatar-xs me-2">
                 <span role="button">
@@ -202,20 +248,24 @@ const PostCard = ({
               </div>
 
               <form className="nav nav-item w-100 position-relative">
-                <textarea data-autoresize className="form-control pe-5 bg-light" rows={1} placeholder="Add a comment..." defaultValue={''} />
-                <button className="nav-link bg-transparent px-3 position-absolute top-50 end-0 translate-middle-y border-0" type="button">
+                <textarea value={content} onChange={(e)=>setContent(e.target.value)} data-autoresize className="form-control pe-5 bg-light" rows={1} placeholder="Add a comment..." defaultValue={''} />
+                <button className="nav-link bg-transparent px-3 position-absolute top-50 end-0 translate-middle-y border-0" type="button" onClick={() =>handleCreateComment()}>
                   <BsSendFill />
                 </button>
               </form>
             </div>
 
             <ul className="comment-wrap list-unstyled">
-              {comments.map(comment => <CommentItem {...comment} key={comment.id} />)}
+              {comment?.map(comment => {
+                if(comment.post==post_id){
+                  <CommentItem {...comment} key={comment.id}></CommentItem>
+                }
+              })}
             </ul>
           </>}
       </CardBody>
 
-      <CardFooter className="border-0 pt-0">{comments && <LoadContentButton name="Load more comments" />}</CardFooter>
+      {/* <CardFooter className="border-0 pt-0">{comments && <LoadContentButton name="Load more comments" />}</CardFooter> */}
     </Card>;
 };
 export default PostCard;

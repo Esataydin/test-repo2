@@ -6,12 +6,28 @@ import CreatePostCard from '@/components/cards/CreatePostCard';
 import { Link } from 'react-router-dom';
 import LoadContentButton from '@/components/LoadContentButton';
 const Home = () => {
+  
+
+
   return <>
       <Col md={8} lg={6} className="vstack gap-4">
-        <Stories />
+        {/* <Stories /> */}
         <CreatePostCard />
         <Feeds />
       </Col>
+
+      {/* {
+        noteData.map((note) => (
+          <div className="note-container">
+            <p className="note-title">{note.title}</p>
+            <p className="note-content">{note.content}</p>
+            <p className="note-date">{note.formattedDate}</p>
+            <button className="delete-button" onClick={handleDelete(note.id)}>
+                Delete
+            </button>
+        </div>
+        ))
+      } */}
 
       <Col lg={3}>
         <Row className="g-4">
@@ -19,7 +35,7 @@ const Home = () => {
             <Followers />
           </Col>
 
-          <Col sm={6} lg={12}>
+          {/* <Col sm={6} lg={12}>
             <Card>
               <CardHeader className="pb-0 border-0">
                 <CardTitle className="mb-0">Today’s news</CardTitle>
@@ -56,7 +72,7 @@ const Home = () => {
                 <LoadContentButton name="View all latest news" />
               </CardBody>
             </Card>
-          </Col>
+          </Col> */}
         </Row>
       </Col>
     </>;

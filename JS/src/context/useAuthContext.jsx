@@ -21,7 +21,7 @@ export function AuthProvider({
   const [user, setUser] = useState(getSession());
   const saveSession = user => {
     setCookie(authSessionKey, JSON.stringify(user));
-    setUser(user);
+    // setUser(user);
   };
   const removeSession = () => {
     deleteCookie(authSessionKey);
