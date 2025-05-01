@@ -1,0 +1,3 @@
+Fix Swagger' "try it out" button to authorize, 
+Add profile edit view
+gerisini de hallet işte
