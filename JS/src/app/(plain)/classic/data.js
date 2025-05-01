@@ -21,23 +21,25 @@ export const menuData = [{
   icon: BsUiRadiosGrid,
   isBadge: true
 }];
+
 export const leftSidebarData = [{
-  icon: BsCardChecklist,
-  label: 'Feed',
-  url: '/profile/feed'
-}, {
-  icon: BsPeople,
-  label: 'Connections',
-  url: '/profile/connections'
-}, {
-  icon: BsNewspaper,
-  label: 'Latest News',
-  url: '/blogs'
-}, {
-  icon: BsCalendarEventFill,
-  label: 'Events',
-  url: '/feed/events'
-}, {
+// [{
+//   icon: BsCardChecklist,
+//   label: 'Feed',
+//   url: '/profile/feed'
+// }, {
+//   icon: BsPeople,
+//   label: 'Connections',
+//   url: '/profile/connections'
+// }, {
+//   icon: BsNewspaper,
+//   label: 'Latest News',
+//   url: '/blogs'
+// }, {
+//   icon: BsCalendarEventFill,
+//   label: 'Events',
+//   url: '/feed/events'
+// }, {
   icon: BsCollectionFill,
   label: 'Groups',
   url: '/feed/groups'

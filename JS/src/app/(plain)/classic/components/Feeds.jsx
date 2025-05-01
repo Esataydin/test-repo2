@@ -124,7 +124,7 @@ const CommentItem = ({
           </div>
 
           <ul className="comment-item-nested list-unstyled">
-            {children?.map(childComment => <CommentItem key={childComment.id} {...childComment} />)}
+            {children?.map(childComment =>  key={childComment.id} {...childComment} />)}
           </ul>
           {children?.length === 2 && <LoadContentButton name="Load more replies" className="mb-3 ms-5" />}
         </>}

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { Button, FormCheck } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
+import useSignIn from '../../sign-in/components/useSignIn';
 const SignUpForm = () => {
   const [firstPassword, setFirstPassword] = useState('');
   const signUpSchema = yup.object({
@@ -15,18 +16,14 @@ const SignUpForm = () => {
     password: yup.string().required('Please enter your password'),
     confirmPassword: yup.string().oneOf([yup.ref('password')], 'Passwords must match')
   });
+
   const {
-    control,
-    handleSubmit,
-    watch,
-    getValues
-  } = useForm({
-    resolver: yupResolver(signUpSchema)
-  });
-  useEffect(() => {
-    setFirstPassword(getValues().password);
-  }, [watch('password')]);
-  return <form className="mt-4" onSubmit={handleSubmit(() => {})}>
+    loading,
+    login,
+    SignUp,
+    control
+  } = useSignIn();
+  return <form className="mt-4" onSubmit={SignUp}>
       <div className="mb-3">
         <TextFormInput name="email" control={control} containerClassName="input-group-lg" placeholder="Enter your email" />
         <small>We&apos;ll never share your email with anyone else.</small>

@@ -19,26 +19,26 @@ import logo8 from '@/assets/images/logo/08.svg';
 import logo9 from '@/assets/images/logo/09.svg';
 import logo10 from '@/assets/images/logo/10.svg';
 export const profilePanelLinksData1 = [{
-  image: homeImg,
-  name: 'Feed',
-  link: '/profile/feed'
-}, {
-  image: personImg,
-  name: 'Connections',
-  link: '/profile/connections'
-}, {
-  image: earthImg,
-  name: 'Latest News',
-  link: '/blogs'
-}, {
-  image: calendarImg,
-  name: 'Events',
-  link: '/profile/events'
-}, {
-  image: chatImg,
-  name: 'Groups',
-  link: '/feed/groups'
-}, {
+//   image: homeImg,
+//   name: 'Feed',
+//   link: '/profile/feed'
+// }, {
+//   image: personImg,
+//   name: 'Connections',
+//   link: '/profile/connections'
+// }, {
+//   image: earthImg,
+//   name: 'Latest News',
+//   link: '/blogs'
+// }, {
+//   image: calendarImg,
+//   name: 'Events',
+//   link: '/profile/events'
+// }, {
+//   image: chatImg,
+//   name: 'Groups',
+//   link: '/feed/groups'
+// }, {
   image: notificationImg,
   name: 'Notifications',
   link: '/notifications'

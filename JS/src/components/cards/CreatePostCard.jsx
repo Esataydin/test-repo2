@@ -17,6 +17,9 @@ import avatar6 from '@/assets/images/avatar/06.jpg';
 import avatar7 from '@/assets/images/avatar/07.jpg';
 import ChoicesFormInput from '../form/ChoicesFormInput';
 import { Link } from 'react-router-dom';
+import { CreatePostData } from '../../app/api/ApiService';
+import { useState } from 'react';
+
 const CreatePostCard = () => {
   const guests = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6, avatar7];
   const {
@@ -42,12 +45,31 @@ const CreatePostCard = () => {
     location: yup.string().required('Please enter event location'),
     guest: yup.string().email('Please enter valid email').required('Please enter event guest email')
   });
-  const {
-    control,
-    handleSubmit
-  } = useForm({
-    resolver: yupResolver(eventFormSchema)
-  });
+
+  const [content, setContent] = useState("");
+  const [title, setTitle] = useState("");
+  // const {
+  //   control,
+  //   handleSubmit
+  // } = useForm({
+  //   resolver: yupResolver(eventFormSchema)
+  // });
+
+  const handleCreate = async () => {
+    console.log("Creating note...");
+    const response = await CreatePostData(content, title);
+    console.log(response);
+    if (response) {
+      console.log("Note created successfully");
+      // alert("Note created successfully");
+      setContent("");
+      setTitle("");
+      window.location.reload();
+    }
+    else {
+      console.log("Failed to create note");
+    }
+  }
   return <>
       <Card className="card-body">
         <div className="d-flex mb-3">
@@ -58,41 +80,55 @@ const CreatePostCard = () => {
             </span>
           </div>
 
+
           <form className="w-100">
-            <textarea className="form-control pe-4 border-0" rows={2} data-autoresize placeholder="Share your thoughts..." defaultValue={''} />
+          <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder='Title...'
+                    className='form-control pe-4 border-0'
+                    onChange={(e) => setTitle(e.target.value)}
+                    value={title}
+                />
+            <textarea className="form-control pe-4 border-0" rows={2} data-autoresize placeholder="Share your thoughts..." defaultValue={''} 
+            id="content"
+            name="content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}/>
           </form>
         </div>
 
-        <ul className="nav nav-pills nav-stack small fw-normal">
-          <li className="nav-item">
+        <ul className="nav nav-pills nav-stack small fw-normal" style={{justifyContent: "flex-end"}}>
+          {/* <li className="nav-item">
             <a className="nav-link bg-light py-1 px-2 mb-0" onClick={togglePhotoModel}>
               
               <BsImageFill size={20} className="text-success pe-2" />
               Photo
             </a>
-          </li>
-          <li className="nav-item">
+          </li> */}
+          {/* <li className="nav-item">
             <a className="nav-link bg-light py-1 px-2 mb-0" onClick={toggleVideoModel}>
               
               <BsCameraReelsFill size={20} className="text-info pe-2" />
               Video
             </a>
-          </li>
-          <li className="nav-item">
+          </li> */}
+          {/* <li className="nav-item">
             <a className="nav-link bg-light py-1 px-2 mb-0" onClick={toggleEvent}>
               
               <BsCalendar2EventFill size={20} className="text-danger pe-2" />
               Event
             </a>
-          </li>
+          </li> */}
           <li className="nav-item">
-            <a className="nav-link bg-light py-1 px-2 mb-0" onClick={togglePost}>
+            <button className="nav-link bg-light py-1 px-2 mb-0" onClick={handleCreate}>
               
-              <BsEmojiSmileFill size={20} className="text-warning pe-2" />
-              Feeling /Activity
-            </a>
+              <BsEmojiSmileFill size={20} className="text-warning pe-2"/>
+              Share
+            </button>
           </li>
-          <Dropdown drop="start" className="nav-item ms-lg-auto">
+          {/* <Dropdown drop="start" className="nav-item ms-lg-auto">
             <DropdownToggle as="a" className="nav-link bg-light py-1 px-2 mb-0 content-none" id="feedActionShare" data-bs-toggle="dropdown" aria-expanded="false">
               <BsThreeDots />
             </DropdownToggle>
@@ -123,7 +159,7 @@ const CreatePostCard = () => {
                 </DropdownItem>
               </li>
             </DropdownMenu>
-          </Dropdown>
+          </Dropdown> */}
         </ul>
       </Card>
 
@@ -190,7 +226,7 @@ const CreatePostCard = () => {
 
       {/* event */}
       <Modal show={isOpenEvent} onHide={toggleEvent} centered className="fade" id="modalCreateEvents" tabIndex={-1} aria-labelledby="modalLabelCreateEvents" aria-hidden="true">
-        <form onSubmit={handleSubmit(() => {})}>
+        <form >
           <ModalHeader closeButton>
             <h5 className="modal-title" id="modalLabelCreateEvents">
               Create event
@@ -198,8 +234,8 @@ const CreatePostCard = () => {
           </ModalHeader>
           <ModalBody>
             <Row className="g-4">
-              <TextFormInput name="title" label="Title" placeholder="Event name here" containerClassName="col-12" control={control} />
-              <TextAreaFormInput name="description" label="Description" rows={2} placeholder="Ex: topics, schedule, etc." containerClassName="col-12" control={control} />
+              <TextFormInput name="title" label="Title" placeholder="Event name here" containerClassName="col-12"  />
+              <TextAreaFormInput name="description" label="Description" rows={2} placeholder="Ex: topics, schedule, etc." containerClassName="col-12"  />
 
               <Col sm={4}>
                 <label className="form-label">Date</label>
@@ -214,9 +250,9 @@ const CreatePostCard = () => {
                 noCalendar: true
               }} type="text" className="form-control" placeholder="Select time" />
               </Col>
-              <TextFormInput name="duration" label="Duration" placeholder="1hr 23m" containerClassName="col-sm-4" control={control} />
-              <TextFormInput name="location" label="Location" placeholder="Logansport, IN 46947" containerClassName="col-12" control={control} />
-              <TextFormInput name="guest" type="email" label="Add guests" placeholder="Guest email" containerClassName="col-12" control={control} />
+              <TextFormInput name="duration" label="Duration" placeholder="1hr 23m" containerClassName="col-sm-4"  />
+              <TextFormInput name="location" label="Location" placeholder="Logansport, IN 46947" containerClassName="col-12"  />
+              <TextFormInput name="guest" type="email" label="Add guests" placeholder="Guest email" containerClassName="col-12"  />
               <Col xs={12} className="mt-3">
                 <ul className="avatar-group list-unstyled align-items-center mb-0">
                   {guests.map((avatar, idx) => <li className="avatar avatar-xs" key={idx}>

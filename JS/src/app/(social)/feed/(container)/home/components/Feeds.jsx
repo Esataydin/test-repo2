@@ -13,6 +13,12 @@ import { Link } from 'react-router-dom';
 import LoadMoreButton from './LoadMoreButton';
 import SuggestedStories from './SuggestedStories';
 import { useFetchData } from '@/hooks/useFetchData';
+import { useEffect, useState } from 'react';
+// import '../styles/Home.css';
+// import '../styles/Form.css';
+// import '../styles/Note.css';
+// import '../styles/LoadingIndicator.css';
+import { CreatePostData,GetPostData,DeletePostData, GetUsersData } from '../../../../../api/ApiService';
 const ActionMenu = ({
   name
 }) => {
@@ -485,9 +491,89 @@ const Feeds = () => {
     progress: 55,
     title: 'Third-party vendor protection'
   }];
-  const allPosts = useFetchData(getAllFeeds);
+  const [noteData, setNoteData] = useState([]);
+  const [usersData, setUsersData] = useState([]);
+  const [content, setContent] = useState("");
+  const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    const getNoteData = async () => {
+      const response = await GetPostData();
+      console.log(response);
+      setNoteData(response);
+    }
+    getNoteData();
+  }
+  , []); 
+  useEffect(() => {
+    const getUsersData = async () => {
+      const response = await GetUsersData();
+      console.log("users",response);
+      setUsersData(response);
+    }
+    getUsersData();
+  }
+  , []); 
+
+  const handleDelete = async (id) => {
+    const response = await DeletePostData(id);
+    if (response) {
+      const updatedNoteData = noteData.filter((note) => note.id !== id);
+      setNoteData(updatedNoteData);
+      alert("Note deleted successfully");
+    }
+    else {
+      alert("Failed to delete note");
+    }
+  }
+  const handleCreate = async () => {
+    const response = await CreatePostData(content, title);
+    if (response) {
+      alert("Note created successfully");
+    }
+    else {
+      alert("Failed to create note");
+    }
+  }
+
   return <>
-      {allPosts?.map((post, idx) => <PostCard {...post} key={idx} />)}
+  {/* <h2>Create a Note</h2> */}
+            {/* <form onSubmit={handleCreate}>
+                <label htmlFor="title">Title:</label>
+                <br />
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    required
+                    onChange={(e) => setTitle(e.target.value)}
+                    value={title}
+                />
+                <label htmlFor="content">Content:</label>
+                <br />
+                <textarea
+                    id="content"
+                    name="content"
+                    required
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                ></textarea>
+                <br />
+                <input type="submit" value="Submit"></input>
+            </form> */}
+      {noteData?.map((post, idx) => {
+        return <PostCard 
+        createdAt={"osdseffc"}
+        likesCount={10}
+        image={usersData[0]?.profile_picture}
+        date={post.created_at}
+        post_id={post.id}
+        name={usersData[0]?.name}
+        title={post.title}
+        desc={post.content}
+        commentsCount={0}
+       key={idx} />
+      })}
 
       <SponsoredCard />
       <Post2 />
