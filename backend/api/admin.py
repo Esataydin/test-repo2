@@ -6,8 +6,8 @@ from .models import User,UserFollower, UserFollowing, Post, Comment, File, Chat
 # Register your models here.
 
 class UserAdmin(admin.ModelAdmin):
-      exclude = ("groups", "user_permissions", )
-      # exclude = ("password", "groups", "user_permissions", )
+      # exclude = ("groups", "user_permissions", )
+      exclude = ("password", "groups", "user_permissions", )
 
 
 # admin.site.register(Note)

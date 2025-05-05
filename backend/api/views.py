@@ -1,57 +1,37 @@
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import generics, permissions
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.exceptions import APIException, NotAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
 
 from django.http import HttpResponse
-from django.shortcuts import redirect
-
-from .models import User, Post, Comment, Chat
-# from .models import  Note
-
-# from .serializers import NoteSerializer
-from .serializers import UserSerializer
-from .serializers import PostSerializer, CommentSerializer, ChatSerializer
-from .serializers import UserFollowerSerializer, UserFollowingSerializer
-
+from django.db.models import Q
 
 from datetime import datetime
-# Create your views here.
 
-# class NoteListCreate(generics.ListCreateAPIView):
-#     serializer_class = NoteSerializer
-#     permission_classes = [IsAuthenticated]
+from .models import User, Post, Comment, Chat
+from .models import File
 
-#     def get_queryset(self):
-#         user = self.request.user
-#         return Note.objects.all()
-    
-#     def perform_create(self, serializer):
-#         if serializer.is_valid():
-#             serializer.save(author=self.request.user)
-#         else:
-#             print(serializer.errors)
+from .serializers import UserSerializer
+from .serializers import PostSerializer, CommentSerializer, ChatSerializer
+from .serializers import UserFollowerSerializer, UserFollowingSerializer, FileSerializer, FileUploadSerializer, FileListSerializer
+
+from .custom_permissions import IsProfileOwner, IsAuthor, IsPostOwner
 
 
-# class NoteDelete(generics.DestroyAPIView):
-#     serializer_class = NoteSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def get_queryset(self):
-#         user = self.request.user
-#         return Note.objects.all()
 
 class UserList(generics.ListAPIView):
     serializer_class = UserSerializer
-    permission_classes = [AllowAny] #TODO Change to IsAuthenticated and make it cool buddy cmon
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return User.objects.all()
 
+
 class UserProfileUpdate(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
-    #TODO: Write a custom permission and use it, https://www.django-rest-framework.org/api-guide/permissions/#djangomodelpermissions
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProfileOwner]
 
     def get_queryset(self):
         user = self.request.user
@@ -95,7 +75,7 @@ class PostListCreate(generics.ListCreateAPIView):
 
 class PostDelete(generics.DestroyAPIView):
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthor]
 
     def get_queryset(self):
         user = self.request.user
@@ -106,71 +86,74 @@ class CommentListCreate(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_post(self):
+        post_id = self.kwargs["post_id"]
+        post = Post.objects.get(id=post_id)
+        return post
+    
+    # print(post.comments)
+    
     def get_queryset(self):
+        post = self.get_post()
+        # comment_id = self.kwargs["pk"]
         user = self.request.user
-        return Comment.objects.all()
+        # print(self.post.comments)
+        return post.comments
     
     def perform_create(self, serializer):
+        post = self.get_post()
         if serializer.is_valid():
-            serializer.save(author=self.request.user, post= Post.objects.all()[0])
+            serializer.save(author=self.request.user, post= post)
         else:
             print(serializer.errors)
 
     
 class CommentDelete(generics.DestroyAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthor]
 
     def get_queryset(self):
         user = self.request.user
         return Comment.objects.all()
     
-import pprint
 class ChatListCreate(generics.ListCreateAPIView):
     serializer_class = ChatSerializer
     permission_classes = [IsAuthenticated]
     
-    def get_queryset(self): #TODO: Return the chats which that user has.(participant_1 and participant_2)
-        chats = Chat.objects.filter(participant_1=self.request.user)
+    def get_queryset(self):
+        chats = Chat.objects.filter(
+            Q(participant_1=self.request.user) | Q(participant_2=self.request.user)
+        )
         return chats
     
     def perform_create(self, serializer):
-        # TODO: Check if the chat between these 2 users already exists, if it exists; don't create a new one
         # testing needed #TEST
         participant_2 = serializer.validated_data["participant_2"]
         user = self.request.user
         if user.is_authenticated:
             print("AUTHENTICATED")
         else:
-            print("WELL IDK")
             return NotAuthenticated
         
         if serializer.is_valid():
-            chat = Chat.objects.filter(participant_1=user, participant_2=participant_2)
+            chat = Chat.objects.filter(
+                Q(participant_1=user, participant_2=participant_2) | Q(participant_1=participant_2, participant_2=user)
+            )
             if len(chat) == 0:
-                chat = Chat.objects.filter(participant_2=user, participant_1=participant_2)
-                if len(chat) == 0:
-                    serializer.save(participant_1=self.request.user, participant_2=participant_2, messages={})
-                    # print(f"Chat created between {user.email} - {participant_2.email}")
-                    return HttpResponse(status=200)
+                serializer.save(participant_1=self.request.user, participant_2=participant_2, messages={})
+                # print(f"Chat created between {user.email} - {participant_2.email}")
+                return HttpResponse(status=200)
             else:
-                print("That chat already exists")
-                
-                print(chat[0].participant_1)
-                
-                print(chat[0].participant_2)
-                # Return the existing chat as a serialized response
-                chat_serializer = ChatSerializer(chat[0], context={'request': self.request})
-                pprint.pprint(chat_serializer.data)
+                print("That chat already exists.")
                 #TODO: It doesn't work properly like that, find a way to make it work or redirect to the chat
-                return HttpResponse(status=409)
+                return HttpResponse("Conflict: Message already exists", status=409)
         else:
             print(serializer.errors)
 
 
 class ChatListUpdate(generics.RetrieveUpdateAPIView):
     serializer_class = ChatSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         user = self.request.user
@@ -184,24 +167,32 @@ class ChatListUpdate(generics.RetrieveUpdateAPIView):
                 return None
         return chat
 
-    
     def perform_update(self, serializer):
         chat = self.get_queryset()[0]
         
         time = str(datetime.now())
         message = self.request.data["message"]
         
-        new_message ={
-                  "sender": self.request.user.id,
-                  "body": message  
-                }
+        if message == "":
+            return None
         
+        new_message = {
+            "sender": self.request.user.id,
+            "body": message
+        }
         chat.messages[time] = new_message
+        chat.save()
         
-        if serializer.is_valid():
-            chat.save()
-        else:
-            print(serializer.errors)
+        # Return updated chat data through serializer
+        updated_chat = Chat.objects.get(pk=chat.pk)
+        return ChatSerializer(updated_chat).data
+
+    def update(self, request, *args, **kwargs):
+        updated_data = self.perform_update(self.get_serializer())
+        if updated_data is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(updated_data)
+        
             
 class UserFollowerListCreate(generics.ListCreateAPIView):
     serializer_class = UserFollowerSerializer
@@ -211,3 +202,39 @@ class UserFollowerListCreate(generics.ListCreateAPIView):
 class UserFollowingListCreate(generics.ListCreateAPIView):
     serializer_class = UserFollowingSerializer
     permission_classes = [IsAuthenticated]
+    
+    
+    
+# TODO File handling is needed - you can do it with S3 or you can store only 1 file
+
+class FileList(generics.ListAPIView):
+    serializer_class = FileSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get_queryset(self):
+        return File.objects.all()
+    
+            
+class FileUploadView(APIView):
+    permission_classes = [IsAuthenticated, IsPostOwner]
+
+    def post(self, request, post_id):
+        print(post_id)
+        try:
+            post = Post.objects.get(id=post_id)
+            files = request.FILES.getlist('files')
+            file_data = [{'file': file, 'post': post_id} for file in files]
+            serializer = FileUploadSerializer(data={'files': file_data})
+            if serializer.is_valid():
+                created_files = serializer.create(serializer.validated_data)
+                response_serializer = FileSerializer(created_files, many=True)
+                return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Post.DoesNotExist:
+            return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, post_id):
+        post = Post.objects.get(id=post_id)
+        files = File.objects.filter(post=post)
+        serializer = FileSerializer(files, many=True)
+        return Response(serializer.data)

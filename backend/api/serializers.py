@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-# from .models import Note
 from .models import User
 from .models import Post, Comment, File, Chat
 from .models import UserFollower, UserFollowing
@@ -26,19 +25,12 @@ class UserSerializer(serializers.ModelSerializer):
                   "is_staff_member",
                   "password"
                   ]
-        extra_kwargs = {"password": {"read_only": True}, "email": {"read_only": True}}
+        # extra_kwargs = {"password": {"read_only": True}, "email": {"read_only": True}}
         # extra_kwargs = {"password": {"write_only": True}}
         
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
-
-
-# class NoteSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Note
-#         fields = ["id", "title", "content", "created_at", "author"]
-#         extra_kwargs = {"author": {"read_only": True}}
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -59,7 +51,7 @@ class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = ["id", "messages", "participant_1", "participant_2", "created_at"]
-        extra_kwargs = {"participant_1": {"read_only": True},
+        extra_kwargs = {"participant_1": {"read_only": True}
                         }
     class ChatSerializer(serializers.ModelSerializer):
         class Meta:
@@ -84,3 +76,23 @@ class UserFollowingSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFollowing
         fields = ["id", "user", "following"]
+        
+        
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ['id', 'post', 'file']
+
+class FileListSerializer(serializers.ListSerializer):
+    child = FileSerializer()
+
+class FileUploadSerializer(serializers.Serializer):
+    files = FileListSerializer()
+
+    def create(self, validated_data):
+        files_data = validated_data['files']
+        created_files = []
+        for file_data in files_data:
+            created_file = File.objects.create(**file_data)
+            created_files.append(created_file)
+        return created_files
