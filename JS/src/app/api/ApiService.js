@@ -50,12 +50,13 @@ const postData = async (data) => {
 
 export const Login = async (email, password) => {
     const token = localStorage.getItem(ACCESS_TOKEN);
-
+    // check if token exists
+    console.log("token", token)
     try {
         const response = await fetch(`${import.meta.env.VITE_API_URL || apiUrl}/api/token/`, {
             method: 'POST',
             headers: {
-                'Authorization': token ? `Bearer ${token}` : '',
+                // 'Authorization': token ? `Bearer ${token}` : '',
                 'Content-Type': 'application/json',  // Ensure the request body is JSON
             },
             body: JSON.stringify({ email, password }),  // Send the data as a JSON string
@@ -79,8 +80,9 @@ export const Register = async (email, password) => {
     try {
         const response = await fetch(`${import.meta.env.VITE_API_URL || apiUrl}/api/user/register/`, {
             method: 'POST',
+            // TODO: Remove header from Register and login with given credentials after registration
             headers: {
-                'Authorization': token ? `Bearer ${token}` : '',
+                // 'Authorization': token ? `Bearer ${token}` : '',
                 'Content-Type': 'application/json',  // Ensure the request body is JSON
             },
             body: JSON.stringify({ email, password }),  // Send the data as a JSON string

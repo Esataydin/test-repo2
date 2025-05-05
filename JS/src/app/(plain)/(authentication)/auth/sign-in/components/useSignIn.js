@@ -92,8 +92,8 @@ const useSignIn = () => {
   const SignUp = handleSubmit(async values => {
     setLoading(true);
     try {
-      const res = await Register(values.email, values.password);
-      console.log('response',res)
+      await Register(values.email, values.password);
+      const res = await Login(values.email, values.password);
           localStorage.setItem(ACCESS_TOKEN, res.access);
           localStorage.setItem(REFRESH_TOKEN, res.refresh);
           console.log("navigate to home")
