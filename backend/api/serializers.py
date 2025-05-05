@@ -25,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
                   "is_staff_member",
                   "password"
                   ]
-        extra_kwargs = {"password": {"read_only": True}, "email": {"read_only": True}}
+        # extra_kwargs = {"password": {"read_only": True}, "email": {"read_only": True}}
         # extra_kwargs = {"password": {"write_only": True}}
         
     def create(self, validated_data):
@@ -76,3 +76,23 @@ class UserFollowingSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFollowing
         fields = ["id", "user", "following"]
+        
+        
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ['id', 'post', 'file']
+
+class FileListSerializer(serializers.ListSerializer):
+    child = FileSerializer()
+
+class FileUploadSerializer(serializers.Serializer):
+    files = FileListSerializer()
+
+    def create(self, validated_data):
+        files_data = validated_data['files']
+        created_files = []
+        for file_data in files_data:
+            created_file = File.objects.create(**file_data)
+            created_files.append(created_file)
+        return created_files
