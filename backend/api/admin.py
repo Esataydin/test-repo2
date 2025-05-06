@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # from .models import Note 
-from .models import User,UserFollower, UserFollowing, Post, Comment, File, Chat
+from .models import User,UserFollower, Post, Comment, File, Chat
 
 # Register your models here.
 
@@ -13,7 +13,7 @@ class UserAdmin(admin.ModelAdmin):
 # admin.site.register(Note)
 admin.site.register(User, UserAdmin)
 admin.site.register(UserFollower)
-admin.site.register(UserFollowing)
+# admin.site.register(UserFollowing)
 admin.site.register(Post)
 admin.site.register(Comment)
 admin.site.register(File)

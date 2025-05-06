@@ -10,8 +10,8 @@ from django.db.models import Q
 
 from datetime import datetime
 
-from .models import User, Post, Comment, Chat
-from .models import File
+from .models import User, Post, Comment, Chat, File
+from .models import UserFollower
 
 from .serializers import UserSerializer
 from .serializers import PostSerializer, CommentSerializer, ChatSerializer
@@ -126,29 +126,35 @@ class ChatListCreate(generics.ListCreateAPIView):
         )
         return chats
     
-    def perform_create(self, serializer):
-        # testing needed #TEST
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
         participant_2 = serializer.validated_data["participant_2"]
         user = self.request.user
-        if user.is_authenticated:
-            print("AUTHENTICATED")
-        else:
-            return NotAuthenticated
+
+        # Check if chat exists
+        chat = Chat.objects.filter(
+            Q(participant_1=user, participant_2=participant_2) | 
+            Q(participant_1=participant_2, participant_2=user)
+        )
         
-        if serializer.is_valid():
-            chat = Chat.objects.filter(
-                Q(participant_1=user, participant_2=participant_2) | Q(participant_1=participant_2, participant_2=user)
+        if chat.exists():
+            return Response(
+                {"error": "Chat already exists", "chat_id": chat[0].id},
+                status=status.HTTP_409_CONFLICT
             )
-            if len(chat) == 0:
-                serializer.save(participant_1=self.request.user, participant_2=participant_2, messages={})
-                # print(f"Chat created between {user.email} - {participant_2.email}")
-                return HttpResponse(status=200)
-            else:
-                print("That chat already exists.")
-                #TODO: It doesn't work properly like that, find a way to make it work or redirect to the chat
-                return HttpResponse("Conflict: Message already exists", status=409)
-        else:
-            print(serializer.errors)
+
+        # Create new chat
+        chat = serializer.save(
+            participant_1=user,
+            participant_2=participant_2,
+            messages={}
+        )
+        return Response(
+            ChatSerializer(chat).data,
+            status=status.HTTP_201_CREATED
+        )
 
 
 class ChatListUpdate(generics.RetrieveUpdateAPIView):
@@ -198,11 +204,64 @@ class UserFollowerListCreate(generics.ListCreateAPIView):
     serializer_class = UserFollowerSerializer
     permission_classes = [IsAuthenticated]
     
+    def get_queryset(self):
+        # Get query parameter to filter followers or following
+        filter_type = self.request.query_params.get('type', 'followers')
+        user = self.request.user
+        
+        if filter_type == 'following':
+            return UserFollower.objects.filter(follower=user)
+        return UserFollower.objects.filter(user=user)
+    
+    def create(self, request, *args, **kwargs):
+        # Get the user to follow
+        user_to_follow = request.data.get('user')
+        
+        # Check if already following
+        existing_follow = UserFollower.objects.filter(
+            user_id=user_to_follow,
+            follower=request.user
+        )
+        
+        if existing_follow.exists():
+            return Response(
+                {"error": "Already following this user"},
+                status=status.HTTP_409_CONFLICT
+            )
+            
+        # Create new follow relationship
+        serializer = self.get_serializer(data={
+            'user': user_to_follow,
+            'follower': request.user.id
+        })
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    
 #TODO: It needs to be deleted and only one endpoint should be used for follow actions handling
 class UserFollowingListCreate(generics.ListCreateAPIView):
     serializer_class = UserFollowingSerializer
     permission_classes = [IsAuthenticated]
     
+    
+class UserUnfollow(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, user_id):
+        try:
+            follow = UserFollower.objects.get(
+                user_id=user_id,
+                follower=request.user
+            )
+            follow.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except UserFollower.DoesNotExist:
+            return Response(
+                {"error": "Not following this user"},
+                status=status.HTTP_404_NOT_FOUND
+            )
     
     
 # TODO File handling is needed - you can do it with S3 or you can store only 1 file

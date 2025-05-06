@@ -11,7 +11,8 @@ urlpatterns = [
     path("posts/<int:post_id>/comments/delete/<int:pk>/", views.CommentDelete.as_view(), name="delete-comment"),
     path("chats/", views.ChatListCreate.as_view(), name="chat-list"),
     path("chats/<int:pk>/update/", views.ChatListUpdate.as_view(), name="chat-update"),
-    path("follow/", views.UserFollowerListCreate.as_view(), name="follow-list" ),
     path("files/", views.FileList.as_view(), name="file-list"),
     path('posts/<int:post_id>/files/', views.FileUploadView.as_view(), name='file-upload'),
+    path('followers/', views.UserFollowerListCreate.as_view(), name='user-followers'),
+    path('unfollow/<int:user_id>/', views.UserUnfollow.as_view(), name='user-unfollow'),
 ]
