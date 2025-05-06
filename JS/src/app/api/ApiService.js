@@ -203,7 +203,9 @@ export const CreatePostData = async (content, title) => {
         console.error('Fetch error:', error);
     }
 }
-
+// TODO: Fix the endpoint to post comment for a specific post
+// For example, if you want to get comments for a post, you would use:
+// POST http://127.0.0.1:8000/api/posts/{post_id}/comments/ is the endpoint
 export const CreateCommentData = async (content, created_at) => {
     const token = localStorage.getItem(ACCESS_TOKEN);
 
@@ -232,7 +234,9 @@ export const CreateCommentData = async (content, created_at) => {
         console.error('Fetch error:', error);
     }
 }
-
+// TODO: Fix the endpoint to get comments for a specific post
+// For example, if you want to get comments for a post, you would use:
+// DELETE http://127.0.0.1:8000/api/posts/{post_id}/comments/delete/{comment_id} is the endpoint
 export const GetComments = async () => {
     const token = localStorage.getItem(ACCESS_TOKEN);
 
@@ -256,3 +260,6 @@ export const GetComments = async () => {
         console.error('Fetch error:', error);
     }
 }
+// TODO: Fix the endpoint to delete the comment for a specific post
+// For example, if you want to delete the comment for a post, you would use:
+// http://127.0.0.1:8000/api/posts/{post_id}/comments/ is the endpoint
