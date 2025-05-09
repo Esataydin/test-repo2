@@ -1,8 +1,9 @@
 from rest_framework import serializers
+from datetime import datetime
 
 from .models import User
 from .models import Post, Comment, File, Chat
-from .models import UserFollower, UserFollowing
+from .models import UserFollower
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -47,36 +48,51 @@ class CommentSerializer(serializers.ModelSerializer):
                         "post":{"read_only": True}
                         }
         
+class ChatUserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'profile_picture']
+
+    def get_profile_picture(self, obj):
+        if obj.profile_picture:
+            return obj.profile_picture.url
+        return '/files/profile_pictures/default_profile.png'  # Default profile picture URL
+
 class ChatSerializer(serializers.ModelSerializer):
+    participant_1 = ChatUserSerializer(read_only=True)
+    participant_2 = ChatUserSerializer(read_only=True)
+    
     class Meta:
         model = Chat
-        fields = ["id", "messages", "participant_1", "participant_2", "created_at"]
-        extra_kwargs = {"participant_1": {"read_only": True}
-                        }
-    class ChatSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Chat
-            fields = ["id", "messages", "participant_1", "participant_2", "created_at"]
-    
+        fields = ["id", "messages", "participant_1", "participant_2", "created_at", "lastMessage"]
+        extra_kwargs = {"participant_1": {"read_only": True}}
 
     def update(self, instance, validated_data):
+        time = str(datetime.now())
+        message = self.context['request'].data.get("message")
         
-        instance.messages = validated_data.get('messages', instance.messages)
+        if message == "":
+            return None
+        
+        new_message = {
+            "sender": self.context['request'].user.id,
+            "body": message
+        }
+        instance.messages[time] = new_message
+        instance.lastMessage = message  # Store only the message text
         instance.save()
-        return instance
+        
+        # Return updated chat data through serializer
+        updated_chat = Chat.objects.get(pk=instance.pk)
+        return ChatSerializer(updated_chat).data
     
     
 class UserFollowerSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFollower
         fields = ["id", "user", "follower"]
-        
-
-class UserFollowingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserFollowing
-        fields = ["id", "user", "following"]
-        
         
 class FileSerializer(serializers.ModelSerializer):
     class Meta:

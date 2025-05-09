@@ -15,7 +15,7 @@ from .models import UserFollower
 
 from .serializers import UserSerializer
 from .serializers import PostSerializer, CommentSerializer, ChatSerializer
-from .serializers import UserFollowerSerializer, UserFollowingSerializer, FileSerializer, FileUploadSerializer, FileListSerializer
+from .serializers import UserFollowerSerializer, FileSerializer, FileUploadSerializer, FileListSerializer
 
 from .custom_permissions import IsProfileOwner, IsAuthor, IsPostOwner
 
@@ -130,7 +130,21 @@ class ChatListCreate(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        participant_2 = serializer.validated_data["participant_2"]
+        participant_2_id = request.data.get("participant_2")
+        if not participant_2_id:
+            return Response(
+                {"error": "participant_2 is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        try:
+            participant_2 = User.objects.get(id=participant_2_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+            
         user = self.request.user
 
         # Check if chat exists
@@ -149,7 +163,8 @@ class ChatListCreate(generics.ListCreateAPIView):
         chat = serializer.save(
             participant_1=user,
             participant_2=participant_2,
-            messages={}
+            messages={},
+            lastMessage=None  # Initialize lastMessage as None for new chats
         )
         return Response(
             ChatSerializer(chat).data,
@@ -160,7 +175,7 @@ class ChatListCreate(generics.ListCreateAPIView):
 class ChatListUpdate(generics.RetrieveUpdateAPIView):
     serializer_class = ChatSerializer
     permission_classes = [IsAuthenticated]
-    
+    # TODO: If tries to update another user's chat, it should return 403
     def get_queryset(self):
         user = self.request.user
         chat_pk = self.kwargs["pk"]
@@ -187,6 +202,7 @@ class ChatListUpdate(generics.RetrieveUpdateAPIView):
             "body": message
         }
         chat.messages[time] = new_message
+        chat.lastMessage = message  # Update lastMessage with the new message text
         chat.save()
         
         # Return updated chat data through serializer
@@ -239,13 +255,6 @@ class UserFollowerListCreate(generics.ListCreateAPIView):
         
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    
-#TODO: It needs to be deleted and only one endpoint should be used for follow actions handling
-class UserFollowingListCreate(generics.ListCreateAPIView):
-    serializer_class = UserFollowingSerializer
-    permission_classes = [IsAuthenticated]
-    
-    
 class UserUnfollow(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     
@@ -263,9 +272,6 @@ class UserUnfollow(generics.DestroyAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
     
-    
-# TODO File handling is needed - you can do it with S3 or you can store only 1 file
-
 class FileList(generics.ListAPIView):
     serializer_class = FileSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]

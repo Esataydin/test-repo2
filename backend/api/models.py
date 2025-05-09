@@ -81,14 +81,6 @@ class UserFollower(models.Model):
     def __str__(self):
         return f"{self.user.name} - {self.follower.name}"
 
-class UserFollowing(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followings")
-    following = models.ForeignKey(User, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f"{self.user.name} - {self.following.name}"
-
-
 class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     content = models.TextField()
@@ -119,7 +111,8 @@ class Chat(models.Model):
     participant_1 = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="chats_1")
     participant_2 = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="chats_2")
     created_at = models.DateTimeField(auto_now_add=True)
+    lastMessage = models.TextField(null=True, blank=True)
     
-    # def __str__(self):
-        # return self.messages['test']
+    def __str__(self):
+        return f"Chat between {self.participant_1.name if self.participant_1 else 'Unknown'} and {self.participant_2.name if self.participant_2 else 'Unknown'}"
     
