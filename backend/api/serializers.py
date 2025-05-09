@@ -1,9 +1,25 @@
 from rest_framework import serializers
 from datetime import datetime
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import User
 from .models import Post, Comment, File, Chat
 from .models import UserFollower
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token['user_id'] = user.id
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # Add extra responses here
+        data['user_id'] = self.user.id
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):
