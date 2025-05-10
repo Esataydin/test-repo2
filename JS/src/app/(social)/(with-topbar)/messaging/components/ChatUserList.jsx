@@ -1,22 +1,35 @@
 import { useChatContext } from '@/context/useChatContext';
-import { getAllUsers } from '@/helpers/data';
-import { useFetchData } from '@/hooks/useFetchData';
+import { useEffect, useState } from 'react';
 import useViewPort from '@/hooks/useViewPort';
 import { Offcanvas, OffcanvasBody, OffcanvasHeader } from 'react-bootstrap';
 import ChatUsers from './ChatUsers';
+import { GetChats } from '../../../../api/ApiService';
+
 const ChatUserList = () => {
-  const chats = useFetchData(getAllUsers);
-  const {
-    width
-  } = useViewPort();
-  const {
-    chatList
-  } = useChatContext();
-  return <>
-      {width >= 992 ? <>{chats && <ChatUsers chats={chats} />}</> : <Offcanvas show={chatList.open} onHide={chatList.toggle} placement="start" tabIndex={-1} id="offcanvasNavbar">
+  const { width } = useViewPort();
+  const { chatList } = useChatContext();
+
+  const [chats, setChats] = useState([]);
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      const chatData = await GetChats();
+      setChats(chatData || []);
+    };
+    fetchChats();
+  }, []);
+
+  return (
+    <>
+      {width >= 992 ? (
+        <>{chats && <ChatUsers chats={chats} />}</>
+      ) : (
+        <Offcanvas show={chatList.open} onHide={chatList.toggle} placement="start">
           <OffcanvasHeader closeButton />
           <OffcanvasBody className="p-0">{chats && <ChatUsers chats={chats} />}</OffcanvasBody>
-        </Offcanvas>}
-    </>;
+        </Offcanvas>
+      )}
+    </>
+  );
 };
 export default ChatUserList;

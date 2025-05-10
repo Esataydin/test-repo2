@@ -8,7 +8,7 @@ import { useNotificationContext } from '@/context/useNotificationContext';
 import httpClient from '@/helpers/httpClient';
 import api from '../../../../../api/route';
 import { Login, Register } from '../../../../../api/ApiService';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../../../../../../constants';
+import { ACCESS_TOKEN, REFRESH_TOKEN, USER_ID } from '../../../../../../constants';
 const baseURL = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_URL
 const useSignIn = () => {
   const [loading, setLoading] = useState(false);
@@ -45,6 +45,7 @@ const useSignIn = () => {
       console.log('response',res)
           localStorage.setItem(ACCESS_TOKEN, res.access);
           localStorage.setItem(REFRESH_TOKEN, res.refresh);
+          localStorage.setItem(USER_ID, res.user_id);
           console.log("navigate to home")
           if (res.access) {
                 saveSession({
@@ -96,6 +97,7 @@ const useSignIn = () => {
       const res = await Login(values.email, values.password);
           localStorage.setItem(ACCESS_TOKEN, res.access);
           localStorage.setItem(REFRESH_TOKEN, res.refresh);
+          localStorage.setItem(USER_ID, res.user_id);
           console.log("navigate to home")
           if (res.access) {
                 saveSession({

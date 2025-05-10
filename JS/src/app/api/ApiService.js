@@ -263,3 +263,105 @@ export const GetComments = async () => {
 // TODO: Fix the endpoint to delete the comment for a specific post
 // For example, if you want to delete the comment for a post, you would use:
 // http://127.0.0.1:8000/api/posts/{post_id}/comments/ is the endpoint
+export const GetChats = async () => {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : '',
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch chats');
+
+        return await response.json();
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+};
+
+export const CreateChat = async (data) => {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : '',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) throw new Error('Failed to create chat');
+
+        return await response.json();
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+};
+
+export const GetChatById = async (id) => {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${id}/update/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : '',
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch chat by ID');
+
+        return await response.json();
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+};
+
+export const UpdateChat = async (id, data) => {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${id}/update/`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : '',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) throw new Error('Failed to update chat');
+
+        return await response.json();
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+};
+
+export const PartialUpdateChat = async (id, data) => {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${id}/update/`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : '',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) throw new Error('Failed to partially update chat');
+
+        return await response.json();
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+};

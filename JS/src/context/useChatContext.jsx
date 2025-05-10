@@ -16,9 +16,8 @@ export const ChatProvider = ({
     showChatList: false,
     showMessageToast: false
   });
-  const changeActiveChat = async userId => {
-    const user = await getUserById(userId);
-    if (user) setActiveChat(user);
+  const changeActiveChat = (chat) => {
+    setActiveChat(chat);
   };
   const toggleChatList = () => {
     setOffcanvasStates({
@@ -40,9 +39,6 @@ export const ChatProvider = ({
     open: offcanvasStates.showMessageToast,
     toggle: toggleMessageToast
   };
-  useEffect(() => {
-    changeActiveChat('102');
-  }, []);
   return <ChatContext.Provider value={{
     activeChat,
     changeActiveChat,
