@@ -19,6 +19,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         # Add extra responses here
         data['user_id'] = self.user.id
+        data['profile_picture_url'] = self.user.profile_picture.url if self.user.profile_picture else '/files/profile_pictures/default_profile.png'
         return data
 
 
@@ -48,6 +49,35 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class UserProfileFeedSerializer(serializers.ModelSerializer):
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+    profile_picture_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'name',
+            'profile_picture_url',
+            'job_title',
+            'working_company',
+            'followers_count',
+            'following_count'
+        ]
+
+    def get_followers_count(self, obj):
+        return UserFollower.objects.filter(user=obj).count()
+
+    def get_following_count(self, obj):
+        return UserFollower.objects.filter(follower=obj).count()
+
+    def get_profile_picture_url(self, obj):
+        if obj.profile_picture:
+            return obj.profile_picture.url
+        return '/files/profile_pictures/default_profile.png'
 
 
 class PostSerializer(serializers.ModelSerializer):

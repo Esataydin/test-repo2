@@ -15,7 +15,7 @@ from .models import UserFollower
 
 from .serializers import UserSerializer
 from .serializers import PostSerializer, CommentSerializer, ChatSerializer
-from .serializers import UserFollowerSerializer, FileSerializer, FileUploadSerializer, FileListSerializer
+from .serializers import UserFollowerSerializer, FileSerializer, FileUploadSerializer, FileListSerializer, UserProfileFeedSerializer
 
 from .custom_permissions import IsProfileOwner, IsAuthor, IsPostOwner
 
@@ -27,6 +27,13 @@ class UserList(generics.ListAPIView):
 
     def get_queryset(self):
         return User.objects.all()
+
+class UserProfileFeedView(generics.RetrieveAPIView):
+    serializer_class = UserProfileFeedSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
 
 
 class UserProfileUpdate(generics.RetrieveUpdateAPIView):
